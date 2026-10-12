@@ -133,6 +133,8 @@ export type WebcamPositionPreset =
 	| "bottom-center"
 	| "custom";
 
+export type WebcamShape = "squircle" | "circle";
+
 export interface WebcamOverlaySettings {
 	/** Source-time intervals containing webcam footage in an imported sequence. */
 	visibleRanges?: { startMs: number; endMs: number }[];
@@ -149,6 +151,8 @@ export interface WebcamOverlaySettings {
 	width: number;
 	height: number;
 	reactToZoom: boolean;
+	/** "circle" is fully rounded (a pill when width and height differ) and ignores roundness. */
+	shape: WebcamShape;
 	roundness: number;
 	/** Legacy pixel value retained only while loading older projects. */
 	cornerRadius?: number;
@@ -193,6 +197,7 @@ export const DEFAULT_ZOOM_OUT_EASING: ZoomTransitionEasing = "recordly";
 export const DEFAULT_CONNECTED_ZOOM_EASING: ZoomTransitionEasing = "glide";
 export const DEFAULT_WEBCAM_SIZE = 40;
 export const DEFAULT_WEBCAM_REACT_TO_ZOOM = true;
+export const DEFAULT_WEBCAM_SHAPE: WebcamShape = "squircle";
 export const DEFAULT_WEBCAM_ROUNDNESS = 100;
 export const DEFAULT_WEBCAM_SHADOW = 0.3;
 export const DEFAULT_WEBCAM_MARGIN = 24;
@@ -215,6 +220,7 @@ export const DEFAULT_WEBCAM_OVERLAY: WebcamOverlaySettings = {
 	width: DEFAULT_WEBCAM_SIZE,
 	height: DEFAULT_WEBCAM_SIZE,
 	reactToZoom: DEFAULT_WEBCAM_REACT_TO_ZOOM,
+	shape: DEFAULT_WEBCAM_SHAPE,
 	roundness: DEFAULT_WEBCAM_ROUNDNESS,
 	shadow: DEFAULT_WEBCAM_SHADOW,
 	margin: DEFAULT_WEBCAM_MARGIN,

@@ -44,7 +44,10 @@ import {
 } from "@/components/video-editor/videoPlayback/motionSmoothing";
 import { getSceneEffectMetrics } from "@/components/video-editor/videoPlayback/sceneEffects";
 import { resolveSceneZoomTarget } from "@/components/video-editor/videoPlayback/sceneMotion";
-import { getWebcamMediaTargetTimeSeconds, isWebcamVisibleAtSourceTime } from "@/components/video-editor/videoPlayback/webcamSync";
+import {
+	getWebcamMediaTargetTimeSeconds,
+	isWebcamVisibleAtSourceTime,
+} from "@/components/video-editor/videoPlayback/webcamSync";
 import {
 	applyZoomTransform,
 	computeZoomTransform,
@@ -53,7 +56,7 @@ import {
 } from "@/components/video-editor/videoPlayback/zoomTransform";
 import {
 	getCropMatchedWebcamHeightPercent,
-	getWebcamCornerRadiusPx,
+	getWebcamBubbleMask,
 	getWebcamCropSourceRect,
 	getWebcamOverlayDimensionsPx,
 	getWebcamOverlayPosition,
@@ -75,7 +78,6 @@ import { renderAnnotations } from "./annotationRenderer";
 import { renderCaptions } from "./captionRenderer";
 import { ForwardFrameSource } from "./forwardFrameSource";
 import { resolveMediaElementSource } from "./localMediaSource";
-
 
 interface FrameRenderConfig {
 	timelineEffects?: boolean;
@@ -1739,7 +1741,11 @@ export class FrameRenderer {
 		const webcam = this.config.webcam;
 		const webcamDecodedFrame = this.webcamDecodedFrame;
 		const webcamVideo = this.webcamVideoElement;
-		if (!webcam?.enabled || !isWebcamVisibleAtSourceTime(webcam, this.currentVideoTime) || (!webcamDecodedFrame && !webcamVideo)) {
+		if (
+			!webcam?.enabled ||
+			!isWebcamVisibleAtSourceTime(webcam, this.currentVideoTime) ||
+			(!webcamDecodedFrame && !webcamVideo)
+		) {
 			return;
 		}
 
@@ -1869,7 +1875,8 @@ export class FrameRenderer {
 			positionY: webcam.positionY ?? 1,
 			legacyCorner: webcam.corner,
 		});
-		const radius = getWebcamCornerRadiusPx(
+		const bubbleMask = getWebcamBubbleMask(
+			webcam.shape,
 			webcam.roundness ?? DEFAULT_WEBCAM_ROUNDNESS,
 			dimensions.width,
 			dimensions.height,
@@ -1900,7 +1907,7 @@ export class FrameRenderer {
 			y: 0,
 			width: dimensions.width,
 			height: dimensions.height,
-			radius,
+			...bubbleMask,
 		});
 		bubbleCtx.clip();
 		if (webcam.mirror) {

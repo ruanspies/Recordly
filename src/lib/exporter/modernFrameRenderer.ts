@@ -53,7 +53,10 @@ import {
 } from "@/components/video-editor/videoPlayback/motionSmoothing";
 import { getSceneEffectMetrics } from "@/components/video-editor/videoPlayback/sceneEffects";
 import { resolveSceneZoomTarget } from "@/components/video-editor/videoPlayback/sceneMotion";
-import { getWebcamMediaTargetTimeSeconds, isWebcamVisibleAtSourceTime } from "@/components/video-editor/videoPlayback/webcamSync";
+import {
+	getWebcamMediaTargetTimeSeconds,
+	isWebcamVisibleAtSourceTime,
+} from "@/components/video-editor/videoPlayback/webcamSync";
 import {
 	applyZoomTransform,
 	computeZoomTransform,
@@ -62,7 +65,7 @@ import {
 } from "@/components/video-editor/videoPlayback/zoomTransform";
 import {
 	getCropMatchedWebcamHeightPercent,
-	getWebcamCornerRadiusPx,
+	getWebcamBubbleMask,
 	getWebcamCropSourceRect,
 	getWebcamOverlayDimensionsPx,
 	getWebcamOverlayPosition,
@@ -70,7 +73,11 @@ import {
 	scaleWebcamOverlayPixels,
 } from "@/components/video-editor/webcamOverlay";
 import { getAssetPath, getExportableVideoUrl, getRenderableAssetUrl } from "@/lib/assetPath";
-import { drawSquircleOnCanvas, drawSquircleOnGraphics } from "@/lib/geometry/squircle";
+import {
+	drawSquircleOnCanvas,
+	drawSquircleOnGraphics,
+	type SquircleCornerStyle,
+} from "@/lib/geometry/squircle";
 import {
 	clampMediaTimeToDuration,
 	getEffectiveVideoStreamDurationSeconds,
@@ -210,6 +217,7 @@ interface WebcamLayoutCache {
 	positionX: number;
 	positionY: number;
 	radius: number;
+	cornerStyle: SquircleCornerStyle;
 	shadowStrength: number;
 	mirror: boolean;
 }
@@ -755,6 +763,7 @@ export class FrameRenderer {
 			width: number;
 			height: number;
 			radius: number;
+			cornerStyle?: SquircleCornerStyle;
 			offsetY: number;
 			alpha: number;
 			blur: number;
@@ -787,6 +796,7 @@ export class FrameRenderer {
 			width: options.width,
 			height: options.height,
 			radius: options.radius,
+			cornerStyle: options.cornerStyle,
 		});
 		layer.context.fill();
 		layer.context.restore();
@@ -2485,6 +2495,7 @@ export class FrameRenderer {
 			areNearlyEqual(previousLayout.positionX, nextLayout.positionX) &&
 			areNearlyEqual(previousLayout.positionY, nextLayout.positionY) &&
 			areNearlyEqual(previousLayout.radius, nextLayout.radius) &&
+			previousLayout.cornerStyle === nextLayout.cornerStyle &&
 			areNearlyEqual(previousLayout.shadowStrength, nextLayout.shadowStrength)
 		);
 	}
@@ -2514,6 +2525,7 @@ export class FrameRenderer {
 			width: nextLayout.width,
 			height: nextLayout.height,
 			radius: nextLayout.radius,
+			cornerStyle: nextLayout.cornerStyle,
 		});
 		this.webcamMaskGraphics.fill({ color: 0xffffff });
 
@@ -2531,6 +2543,7 @@ export class FrameRenderer {
 				width: nextLayout.width,
 				height: nextLayout.height,
 				radius: nextLayout.radius,
+				cornerStyle: nextLayout.cornerStyle,
 				offsetY,
 				alpha: layer.alphaScale * nextLayout.shadowStrength,
 				blur: Math.max(0, shadowSize * layer.blurScale * nextLayout.shadowStrength),
@@ -2725,7 +2738,12 @@ export class FrameRenderer {
 
 	private updateWebcamOverlay(referenceTimeSeconds = this.currentVideoTime): void {
 		const webcam = this.config.webcam;
-		if (!webcam?.enabled || !isWebcamVisibleAtSourceTime(webcam, referenceTimeSeconds) || !this.webcamRootContainer || !this.webcamMaskGraphics) {
+		if (
+			!webcam?.enabled ||
+			!isWebcamVisibleAtSourceTime(webcam, referenceTimeSeconds) ||
+			!this.webcamRootContainer ||
+			!this.webcamMaskGraphics
+		) {
 			if (this.webcamRootContainer) {
 				this.webcamRootContainer.visible = false;
 			}
@@ -2818,7 +2836,8 @@ export class FrameRenderer {
 			positionY: webcam.positionY ?? 1,
 			legacyCorner: webcam.corner,
 		});
-		const radius = getWebcamCornerRadiusPx(
+		const bubbleMask = getWebcamBubbleMask(
+			webcam.shape,
 			webcam.roundness ?? DEFAULT_WEBCAM_ROUNDNESS,
 			dimensions.width,
 			dimensions.height,
@@ -2834,7 +2853,7 @@ export class FrameRenderer {
 			height: dimensions.height,
 			positionX: position.x,
 			positionY: position.y,
-			radius,
+			...bubbleMask,
 			shadowStrength,
 			mirror: webcam.mirror,
 		};

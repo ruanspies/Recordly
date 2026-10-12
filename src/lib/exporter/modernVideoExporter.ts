@@ -36,7 +36,7 @@ import { resolveSceneZoomTarget } from "@/components/video-editor/videoPlayback/
 import { getCursorStyleSizeMultiplier } from "@/components/video-editor/videoPlayback/uploadedCursorAssets";
 import { computeZoomTransform } from "@/components/video-editor/videoPlayback/zoomTransform";
 import {
-	getWebcamCornerRadiusPx,
+	getWebcamBubbleMask,
 	getWebcamOverlayPosition,
 	getWebcamOverlaySizePx,
 	isWebcamCropRegionDefault,
@@ -2249,11 +2249,12 @@ export class ModernVideoExporter {
 			left: Math.round(position.x),
 			top: Math.round(position.y),
 			size,
-			radius: getWebcamCornerRadiusPx(
+			radius: getWebcamBubbleMask(
+				webcam.shape,
 				webcam.roundness ?? DEFAULT_WEBCAM_ROUNDNESS,
 				size,
 				size,
-			),
+			).radius,
 			shadowIntensity: getWebcamShadowStrength(webcam.shadow ?? 0),
 			mirror: webcam.mirror !== false,
 			timeOffsetMs: Number.isFinite(webcam.timeOffsetMs) ? webcam.timeOffsetMs : 0,

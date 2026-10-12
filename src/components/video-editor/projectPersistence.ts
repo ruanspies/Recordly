@@ -42,6 +42,7 @@ import {
 	DEFAULT_WEBCAM_POSITION_Y,
 	DEFAULT_WEBCAM_REACT_TO_ZOOM,
 	DEFAULT_WEBCAM_ROUNDNESS,
+	DEFAULT_WEBCAM_SHAPE,
 	DEFAULT_WEBCAM_SHADOW,
 	DEFAULT_WEBCAM_SIZE,
 	DEFAULT_WEBCAM_TIME_OFFSET_MS,
@@ -1005,6 +1006,7 @@ export function normalizeProjectEditor(editor: Partial<ProjectEditorState>): Pro
 					: legacyZoomScaleEffect != null
 						? legacyZoomScaleEffect > 0
 						: DEFAULT_WEBCAM_REACT_TO_ZOOM,
+			shape: webcam.shape === "circle" ? "circle" : DEFAULT_WEBCAM_SHAPE,
 			roundness: isFiniteNumber(webcam.roundness)
 				? clamp(webcam.roundness, 0, 100)
 				: isFiniteNumber(webcam.cornerRadius)

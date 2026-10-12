@@ -1,4 +1,5 @@
-import type { CropRegion, WebcamCorner, WebcamPositionPreset } from "./types";
+import type { SquircleCornerStyle } from "@/lib/geometry/squircle";
+import type { CropRegion, WebcamCorner, WebcamPositionPreset, WebcamShape } from "./types";
 
 const MIN_WEBCAM_OVERLAY_SIZE_PX = 56;
 export const WEBCAM_REFERENCE_VIEWPORT_WIDTH = 1920;
@@ -22,6 +23,22 @@ export function getWebcamCornerRadiusPx(
 	const safeRoundness = Number.isFinite(roundnessPercent) ? clamp(roundnessPercent, 0, 100) : 0;
 	const strengthenedRoundness = Math.sqrt(safeRoundness / 100);
 	return (Math.max(0, Math.min(width, height)) / 2) * strengthenedRoundness;
+}
+
+export function getWebcamBubbleMask(
+	shape: WebcamShape | undefined,
+	roundnessPercent: number,
+	width: number,
+	height: number,
+): { radius: number; cornerStyle: SquircleCornerStyle } {
+	if (shape === "circle") {
+		return { radius: Math.max(0, Math.min(width, height)) / 2, cornerStyle: "circular" };
+	}
+
+	return {
+		radius: getWebcamCornerRadiusPx(roundnessPercent, width, height),
+		cornerStyle: "squircle",
+	};
 }
 
 export function convertLegacyWebcamRadiusToRoundness(

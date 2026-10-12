@@ -58,6 +58,7 @@ import type {
 	Padding,
 	WebcamOverlaySettings,
 	WebcamPositionPreset,
+	WebcamShape,
 	ZoomDepth,
 	ZoomMode,
 	ZoomTransitionEasing,
@@ -81,6 +82,7 @@ import {
 	DEFAULT_WEBCAM_POSITION_Y,
 	DEFAULT_WEBCAM_REACT_TO_ZOOM,
 	DEFAULT_WEBCAM_ROUNDNESS,
+	DEFAULT_WEBCAM_SHAPE,
 	DEFAULT_WEBCAM_SHADOW,
 	DEFAULT_WEBCAM_SIZE,
 	DEFAULT_ZOOM_IN_DURATION_MS,
@@ -1328,6 +1330,7 @@ export function SettingsPanel({
 	const webcamFileName = webcam?.sourcePath?.split(/[\\/]/).pop() ?? null;
 	const visibleColorPalette = colorPalette.slice(0, 15);
 	const webcamPositionPreset = webcam?.positionPreset ?? DEFAULT_WEBCAM_POSITION_PRESET;
+	const webcamShape = webcam?.shape ?? DEFAULT_WEBCAM_SHAPE;
 	const webcamPositionX = webcam?.positionX ?? DEFAULT_WEBCAM_POSITION_X;
 	const webcamPositionY = webcam?.positionY ?? DEFAULT_WEBCAM_POSITION_Y;
 	const webcamWidth = webcam?.width ?? webcam?.size ?? DEFAULT_WEBCAM_SIZE;
@@ -3207,15 +3210,37 @@ export function SettingsPanel({
 									formatValue={(v) => `${Math.round(v)}px`}
 								/>
 							)}
-							<SliderControl
-								label={tSettings("effects.webcamRoundness")}
-								value={webcam?.roundness ?? DEFAULT_WEBCAM_ROUNDNESS}
-								min={0}
-								max={100}
-								step={1}
-								onChange={(v) => updateWebcam({ roundness: v })}
-								formatValue={(v) => `${Math.round(v)}%`}
-							/>
+							<div className="py-2">
+								<div className="mb-2 text-xs text-muted-foreground">
+									{tSettings("effects.webcamShape", "Shape")}
+								</div>
+								<ChoiceGroup
+									aria-label={tSettings("effects.webcamShape", "Shape")}
+									value={webcamShape}
+									onValueChange={(value) =>
+										updateWebcam({ shape: value as WebcamShape })
+									}
+									className="grid grid-cols-2 gap-2"
+								>
+									<ChoiceItem value="squircle" textValue="squircle">
+										{tSettings("effects.webcamShapeSquircle", "Rounded")}
+									</ChoiceItem>
+									<ChoiceItem value="circle" textValue="circle">
+										{tSettings("effects.webcamShapeCircle", "Circle")}
+									</ChoiceItem>
+								</ChoiceGroup>
+							</div>
+							{webcamShape === "squircle" && (
+								<SliderControl
+									label={tSettings("effects.webcamRoundness")}
+									value={webcam?.roundness ?? DEFAULT_WEBCAM_ROUNDNESS}
+									min={0}
+									max={100}
+									step={1}
+									onChange={(v) => updateWebcam({ roundness: v })}
+									formatValue={(v) => `${Math.round(v)}%`}
+								/>
+							)}
 							{advanced && (
 								<SliderControl
 									label={tSettings("effects.webcamShadow")}

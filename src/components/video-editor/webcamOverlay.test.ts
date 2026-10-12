@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { getSquirclePathPoints } from "@/lib/geometry/squircle";
 import {
 	convertLegacyWebcamRadiusToRoundness,
 	getCropMatchedWebcamHeightPercent,
+	getWebcamBubbleMask,
 	getWebcamCornerRadiusPx,
 	getWebcamCropSourceRect,
 	getWebcamOverlayDimensionsPx,
@@ -21,6 +23,54 @@ describe("webcam roundness", () => {
 
 	it("converts legacy reference pixels without changing the approximate shape", () => {
 		expect(convertLegacyWebcamRadiusToRoundness(90, 40, 40)).toBeCloseTo(17.36, 1);
+	});
+});
+
+describe("webcam shape", () => {
+	it("keeps the roundness-driven squircle for the default shape", () => {
+		expect(getWebcamBubbleMask("squircle", 25, 640, 360)).toEqual({
+			radius: 90,
+			cornerStyle: "squircle",
+		});
+		expect(getWebcamBubbleMask(undefined, 100, 400, 400)).toEqual({
+			radius: 200,
+			cornerStyle: "squircle",
+		});
+	});
+
+	it("ignores roundness and fully rounds the short side for a circle", () => {
+		expect(getWebcamBubbleMask("circle", 0, 640, 360)).toEqual({
+			radius: 180,
+			cornerStyle: "circular",
+		});
+	});
+
+	it("draws a true circle for a square circle-shaped bubble", () => {
+		const points = getSquirclePathPoints({
+			x: 0,
+			y: 0,
+			width: 400,
+			height: 400,
+			...getWebcamBubbleMask("circle", 100, 400, 400),
+		});
+
+		for (const point of points) {
+			expect(Math.hypot(point.x - 200, point.y - 200)).toBeCloseTo(200, 6);
+		}
+	});
+
+	it("bulges past a true circle for a fully rounded squircle", () => {
+		const points = getSquirclePathPoints({
+			x: 0,
+			y: 0,
+			width: 400,
+			height: 400,
+			...getWebcamBubbleMask("squircle", 100, 400, 400),
+		});
+
+		expect(Math.max(...points.map((p) => Math.hypot(p.x - 200, p.y - 200)))).toBeGreaterThan(
+			230,
+		);
 	});
 });
 

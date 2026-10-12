@@ -124,6 +124,16 @@ describe("normalizeProjectEditor", () => {
 		expect(editor.webcam.cornerRadius).toBeUndefined();
 	});
 
+	it("defaults the webcam shape to squircle unless circle is saved", () => {
+		expect(normalizeProjectEditor({ webcam: {} as never }).webcam.shape).toBe("squircle");
+		expect(normalizeProjectEditor({ webcam: { shape: "blob" } as never }).webcam.shape).toBe(
+			"squircle",
+		);
+		expect(normalizeProjectEditor({ webcam: { shape: "circle" } as never }).webcam.shape).toBe(
+			"circle",
+		);
+	});
+
 	it("uses the legacy webcam size when migrating radius pixels", () => {
 		const editor = normalizeProjectEditor({
 			webcam: {
