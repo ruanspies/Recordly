@@ -13,7 +13,7 @@ import {
 	XIcon,
 } from "@/components/ui/icons";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useScopedT } from "../../contexts/I18nContext";
 import { useMicrophoneDevices } from "../../hooks/useMicrophoneDevices";
@@ -41,6 +41,7 @@ import {
 import { MicPopover } from "./popovers/MicPopover";
 import { SourcePopover } from "./popovers/SourcePopover";
 import { WebcamPopover } from "./popovers/WebcamPopover";
+import { loadWebcamShapePreference, saveWebcamShapePreference } from "./webcamShapePreference";
 import { RecordingControls } from "./RecordingControls";
 
 export function LaunchWindow() {
@@ -138,6 +139,15 @@ function LaunchWindowContent() {
 		webcamPopoverOpen: openId === "webcam",
 		hudOverlayMousePassthroughSupported,
 	});
+
+	const [webcamShape, setWebcamShape] = useState(loadWebcamShapePreference);
+	const webcamPopoverOpen = openId === "webcam";
+	useEffect(() => {
+		// The editor can change the shape too, so pick it up whenever the webcam UI appears.
+		if (webcamEnabled || webcamPopoverOpen) {
+			setWebcamShape(loadWebcamShapePreference());
+		}
+	}, [webcamEnabled, webcamPopoverOpen]);
 
 	useEffect(() => {
 		window.electronAPI?.hudOverlaySetWebcamPreviewVisible?.(showRecordingWebcamPreview);
@@ -309,6 +319,11 @@ function LaunchWindowContent() {
 				)}
 				showFloatingWebcamPreview={showFloatingWebcamPreview}
 				onToggleFloatingPreview={() => setShowFloatingWebcamPreview((current) => !current)}
+				webcamShape={webcamShape}
+				onWebcamShapeChange={(shape) => {
+					saveWebcamShapePreference(shape);
+					setWebcamShape(shape);
+				}}
 				showWebcamControls={showWebcamControls}
 				setWebcamPreviewNode={setWebcamPreviewNode}
 				videoDevices={videoDevices}
@@ -515,6 +530,7 @@ function LaunchWindowContent() {
 									transform: `translate(${webcamPreviewOffset.x}px, ${webcamPreviewOffset.y}px)`,
 									width: webcamPreviewSize.width,
 									height: webcamPreviewSize.height,
+									...(webcamShape === "circle" ? { borderRadius: 9999 } : null),
 								}}
 								onMouseEnter={handleHudMouseEnter}
 								onMouseLeave={handleHudMouseLeave}

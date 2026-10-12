@@ -188,3 +188,48 @@ for (const storageBlocked of [false, true]) {
 		expect(errors).toEqual([]);
 	});
 }
+
+test("webcam popover switches the live previews to a circle and saves it for the editor", async ({
+	page,
+}) => {
+	await installDesktopBridge(page);
+	await page.addInitScript(() => {
+		window.electronAPI.setAppSetting = (key, value) => {
+			document.documentElement.dataset[
+				key === "recordly.editor.preferences" ? "editorPreferences" : "otherSetting"
+			] = JSON.stringify(value);
+			return true;
+		};
+		window.electronAPI.getRecordingPreferences = async () => ({
+			success: true,
+			microphoneEnabled: false,
+			webcamEnabled: true,
+			systemAudioEnabled: false,
+		});
+		navigator.mediaDevices.getUserMedia = async () => {
+			const canvas = document.createElement("canvas");
+			canvas.getContext("2d")!.fillRect(0, 0, 320, 320);
+			return canvas.captureStream(24);
+		};
+		navigator.mediaDevices.enumerateDevices = async () => [];
+	});
+	await page.goto("/?windowType=hud-overlay");
+	const floatingPreview = page.locator('[title="Webcam"]:has(video)');
+	await expect(floatingPreview).toBeVisible();
+	await expect(floatingPreview).toHaveCSS("border-radius", "24px");
+
+	await page.getByRole("button", { name: "Disable webcam overlay" }).click();
+	await page.getByRole("button", { name: "Circle Webcam" }).click();
+
+	await expect(floatingPreview).toHaveCSS("border-radius", "9999px");
+	await expect
+		.poll(() =>
+			page.evaluate(
+				() =>
+					JSON.parse(document.documentElement.dataset.editorPreferences ?? "{}").webcam
+						?.shape,
+			),
+		)
+		.toBe("circle");
+	await page.screenshot({ path: "test-results/hud-webcam-circle.png", animations: "disabled" });
+});

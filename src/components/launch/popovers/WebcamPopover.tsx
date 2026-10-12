@@ -1,6 +1,7 @@
 import {
 	Eye,
 	EyeSlash as EyeOff,
+	UserCircle,
 	VideoCamera as Video,
 	VideoCameraSlash as VideoOff,
 } from "@/components/ui/icons";
@@ -9,6 +10,7 @@ import { DropdownItem, HudPopover } from "./PopoverScaffold";
 import { useLaunchPopoverCoordinator } from "./LaunchPopoverCoordinator";
 import type { DeviceOption } from "./launchPopoverTypes";
 import type { ReactElement } from "react";
+import type { WebcamShape } from "@/components/video-editor/types";
 
 const POPOVER_ID = "webcam";
 
@@ -20,6 +22,8 @@ export function WebcamPopover({
 	canToggleFloatingPreview,
 	showFloatingWebcamPreview,
 	onToggleFloatingPreview,
+	webcamShape,
+	onWebcamShapeChange,
 	showWebcamControls,
 	setWebcamPreviewNode,
 	videoDevices,
@@ -34,6 +38,8 @@ export function WebcamPopover({
 	canToggleFloatingPreview: boolean;
 	showFloatingWebcamPreview: boolean;
 	onToggleFloatingPreview: () => void;
+	webcamShape: WebcamShape;
+	onWebcamShapeChange: (shape: WebcamShape) => void;
 	showWebcamControls: boolean;
 	setWebcamPreviewNode: (node: HTMLVideoElement | null) => void;
 	videoDevices: DeviceOption[];
@@ -88,6 +94,15 @@ export function WebcamPopover({
 								: t("recording.showFloatingWebcamPreview")}
 						</DropdownItem>
 					) : null}
+					<DropdownItem
+						icon={<UserCircle size={16} />}
+						selected={webcamShape === "circle"}
+						onClick={() =>
+							onWebcamShapeChange(webcamShape === "circle" ? "squircle" : "circle")
+						}
+					>
+						{t("recording.circleWebcam", "Circle Webcam")}
+					</DropdownItem>
 				</>
 			)}
 			{!webcamEnabled && (
@@ -97,7 +112,11 @@ export function WebcamPopover({
 			)}
 			{showWebcamControls && (
 				<div className="flex justify-center px-3 py-2">
-					<div className="h-24 w-24 overflow-hidden rounded-2xl bg-[var(--launch-hover)] ring-1 ring-[var(--launch-border-strong)]">
+					<div
+						className={`h-24 w-24 overflow-hidden bg-[var(--launch-hover)] ring-1 ring-[var(--launch-border-strong)] ${
+							webcamShape === "circle" ? "rounded-full" : "rounded-2xl"
+						}`}
+					>
 						<video
 							ref={setWebcamPreviewNode}
 							className="h-full w-full object-cover"

@@ -33,6 +33,7 @@
 		"turnOffWebcam": "关闭摄像头",
 		"hideFloatingWebcamPreview": "隐藏悬浮预览",
 		"showFloatingWebcamPreview": "显示悬浮预览",
+		"circleWebcam": "圆形摄像头",
 		"selectWebcamToEnable": "选择一个摄像头以启用",
 		"noWebcamsFound": "未找到摄像头",
 		"recordingsFolder": "录制文件夹",
